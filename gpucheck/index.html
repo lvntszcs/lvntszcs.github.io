@@ -4,10 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src='https://cdn.dashjs.org/latest/dash.all.min.js'></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+        theme: {
+            extend: {
+            colors: {
+            }
+            }
+        }
+        }
+    </script>
+
 </head>
 <body>
-    <h1 id="output" class="h-screen text-center pt-10 text-4xl"></h1>
+    <div class="container mx-auto text-center">
+        <div id="gpu-info-container">
+            <div class="flex items-center p-4 mb-4 text-sm my-2 text-blue-600 border border-blue-300 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400 dark:border-blue-800" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <div>
+                  <span class="font-medium">Renderer</span> <span id="gpu-info"></span>
+                </div>
+            </div>
+        </div>
+        <div id="http-warning"></div>
+        <div id="error" hidden>
+            <div class="flex items-center p-4 mb-4 text-sm my-2 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800" role="alert">
+                <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <div>
+                  <span class="font-medium">Error!</span> You must enable hardware acceleration to play the video.
+                </div>
+            </div>
+        </div>
+        <video src="" class="max-w-screen-md mx-auto"></video>
+        <button onclick="init();" class="my-5 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Start video</button>
+    </div>
     <script src="script.js"></script>
+    <script>
+        check();
+
+        function init() {
+            if(!isHardwareAccelerationEnabled()){
+                const error = document.getElementById('error');
+                error.hidden = false;
+                return;
+            }
+            var protData = {
+            "com.widevine.alpha": {
+                "serverURL": "https://drm-widevine-licensing.axtest.net/AcquireLicense",
+                "httpRequestHeaders": {
+                    "X-AxDRM-Message": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoxLCJjb21fa2V5X2lkIjoiYjMzNjRlYjUtNTFmNi00YWUzLThjOTgtMzNjZWQ1ZTMxYzc4IiwibWVzc2FnZSI6eyJ0eXBlIjoiZW50aXRsZW1lbnRfbWVzc2FnZSIsImZpcnN0X3BsYXlfZXhwaXJhdGlvbiI6NjAsInBsYXlyZWFkeSI6eyJyZWFsX3RpbWVfZXhwaXJhdGlvbiI6dHJ1ZX0sImtleXMiOlt7ImlkIjoiOWViNDA1MGQtZTQ0Yi00ODAyLTkzMmUtMjdkNzUwODNlMjY2IiwiZW5jcnlwdGVkX2tleSI6ImxLM09qSExZVzI0Y3Iya3RSNzRmbnc9PSJ9XX19.FAbIiPxX8BHi9RwfzD7Yn-wugU19ghrkBFKsaCPrZmU"
+                },
+                priority: 0
+            }
+            };
+            var video,
+                player,
+                url = "https://media.axprod.net/TestVectors/v7-MultiDRM-SingleKey/Manifest_1080p.mpd";
+
+            video = document.querySelector("video");
+            player = dashjs.MediaPlayer().create();
+            player.initialize(video, url, true);
+            player.setProtectionData(protData);
+        }
+        function check() {
+            if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+                var out = 'This page has been loaded under http. This might result in the EME APIs not being available to the player and any DRM-protected content will fail to play. ' +
+                    'If you wish to test manifest URLs that require EME support, then <a href=\'https:' + window.location.href.substring(window.location.protocol.length) + '\'>reload this page under https</a>.'
+                var div = document.getElementById('http-warning');
+                div.innerHTML = out;
+                div.style.display = ''
+            }
+        }
+    </script>
 </body>
 </html>
